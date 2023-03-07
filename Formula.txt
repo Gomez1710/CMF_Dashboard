@@ -1,0 +1,7 @@
+=IF(ISNUMBER(SEARCH("Family", B2)), "FM",
+IF(ISNUMBER(SEARCH("Internal", B2)), "IM",
+IF(ISNUMBER(SEARCH("Emergency", B2)), "EM",
+IF(ISNUMBER(SEARCH("OBGYN", B2)), "OBGYN",
+IF(ISNUMBER(SEARCH("Obstet", B2)), "OBGYN",
+IF(ISNUMBER(SEARCH("Pedi", B2)), "Peds",
+IF(ISNUMBER(SEARCH("Child", B2)), "Peds", "Combined Program")))))))

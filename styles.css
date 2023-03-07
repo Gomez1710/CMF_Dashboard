@@ -1,0 +1,50 @@
+.navbar-logo {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  height: 45px;
+}
+
+.navbar-logo img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  height: auto;
+}
+
+.navbar-inverse {
+  background-color: #042B46;
+  border-color: #fff;
+  font-family: montserrat;
+  
+}
+
+.section.sidebar {
+  background-color: #042B46;
+  color: white;
+  font-family: montserrat;
+  padding-top: 120px;
+ 
+}
+
+body {
+  font-family: montserrat;
+  backgroun-color: #DFE0DE;
+  padding-top: 150px;
+  
+}
+
+.legend {
+    padding: 6px 10px 6px 6px;
+    color: #000033;
+    font-family: montserrat;
+}
+
+.value-box .value {
+  color: white;
+}
+
+.value-box .caption {
+  color: white;
+  font-weight: bold;
+}

@@ -1,0 +1,404 @@
+---
+title: "CalMedForce Impact"
+output:
+  flexdashboard::flex_dashboard:
+    fig_retina: 1
+    css: styles.css
+    logo: CalMedForce_RGB_cobrand_tagline_reverse on PHC dark blue only.png
+    smart: no
+runtime: shiny
+---
+
+```{r include = FALSE}
+
+library(tidyverse)
+library(tigris)
+library(viridis)
+library(scales)
+library(shiny)
+library(knitr)
+library(leaflet)
+library(rsconnect)
+library(flexdashboard)
+library(htmltools)
+library(showtext)
+library(plotly)
+
+#read in scripts
+source("1.Impact_summary.R", local = TRUE)
+source("2.Graduates.R", local = TRUE)
+source("3.All_awardees.R", local = TRUE)
+
+```
+
+Impact Summary
+=====================================  
+
+Columns {data-width=800}
+-------------------------------------
+
+### CalMedForce Impact Map Summary (Cohort 1 through Cohort 5)
+
+```{r}
+
+renderLeaflet({
+  ###Create leaflet map
+awardee_map$mytext <- sprintf(
+"<p style='font-size: 18px; font-family: montserrat'>%s</p>",
+ awardee_map$mytext) %>% 
+ lapply(htmltools::HTML)
+
+pal <- colorNumeric(palette = "viridis",  domain = awardee_map$awardAmount, na.color = "white")
+
+leaflet(awardee_map) %>% 
+  addPolygons(fillColor = pal(awardee_map$awardAmount),
+              popup = awardee_map$mytext,
+              popupOptions = popupOptions(maxWidth = 500),
+              label = awardee_map$County,
+             labelOptions = labelOptions(style = list("font-weight" = "normal", 
+                                                        padding = "3px 8px",
+                                                       "font-family" = "Montserrat"),
+                                          textsize = "25px",
+                                          direction = "auto",
+                                          interactive = TRUE),
+              color = "#444444",
+              smoothFactor = .5,
+              weight = 1,
+              opacity = 1.0,
+              fillOpacity = 1,
+              highlightOptions = highlightOptions(weight = 5,
+                                           color = "#666",
+                                           fillOpacity = 0,7,
+                                           bringToFront = TRUE)) %>% 
+  addLegend(title = "<p style='font-family:montserrat'>Total Funds Awarded</p>", pal = pal, values = ~awardee_map$awardAmount, opacity = 0.7,
+  position = "topright", na.label = "", labFormat = labelFormat(prefix = "$"))
+
+})
+
+```   
+
+
+Columns {data-width=200}
+-------------------------------------
+### Programs Awarded to Date
+
+```{r}
+renderValueBox({
+
+  
+  
+total.awardees <- awardees %>% filter(Grant.ID != "") 
+
+total.awardees <- length(total.awardees$Organization)
+
+valueBox(total.awardees,
+         caption = "<b><p style='font-family:montserrat'># of Programs Awarded</p></b>",
+               icon = "fa-hospital-o",
+               color = "#10C637")
+})
+
+
+```
+
+### Resident Positions Funded to Date
+
+```{r}
+
+renderValueBox({
+
+total.resident <- awardees %>% filter(Grant.ID != "") 
+total.residents <- sum(total.resident$Total.Positions.Awarded)
+
+valueBox(total.residents,
+         caption = "<b><p style='font-family:montserrat'># of Resident Positions Funded</p></b>",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+### Total Funds Awarded to Date
+
+```{r}
+
+renderValueBox({
+
+total.awarded <- awardees %>% filter(Grant.ID != "")
+
+total.awarded <- scales::dollar(sum(total.awarded$Amount.Awarded) + 450000 + 450000 + 150000 + 75000) 
+
+valueBox(total.awarded,
+         caption = "<b><p style='font-family:montserrat'>Total Funds Awarded</p></b>",
+               icon = "fa-money",
+               color = "#10C637")
+})
+
+```
+
+### Legend
+
+<p style="text-decoration: underline;">Abbreviations used throughout the dashboard</p>
+FM = Family Medicine <br>
+IM = Internal Medicine <br>
+Peds = Pediatrics <br>
+OBGYN = Obstetrics and Gynecology <br>
+EM = Emergency Medicine <br>
+
+Each county that is color coded means they have GME programs that have been awarded by the CalMedForce Grant. Click on a county to view the county level summary. County level summary contains the number of programs awarded by discipline, total funds awarded by discipline, and overall totals.
+
+Graduates
+=====================================  
+
+Sidebar {.sidebar}
+-------------------------------------
+
+
+```{r}
+
+p("Graduate information is based on five years of data (2016-17 through 2020-21) that is obtained through the CalMedForce grant application. The map illustrates where graduates practice after completing residency.")
+
+```
+
+Column {data-width=150}
+-------------------------------------
+
+### FM Graduates
+
+```{r}
+renderValueBox({
+
+valueBox(fm_grads,
+         caption = "# of Family Medicine Graduates",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+### IM Graduates
+
+```{r}
+
+renderValueBox({
+
+valueBox(im_grads,
+         caption = "<p style='font-family:montserrat'># of Internal Medicine Graduates</p>",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+### Ped Graduates
+
+```{r}
+renderValueBox({
+
+valueBox(peds_grads,
+         caption = "<p style='font-family:montserrat'># of Pediatric Graduates</p>",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+### OBGYN Graduates
+
+```{r}
+renderValueBox({
+
+valueBox(ob_grads,
+         caption = "<p style='font-family:montserrat'># of Obstetrics and Gynecology Graduates</p>",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+### Combined Program Graduates
+
+```{r}
+renderValueBox({
+
+valueBox(cb_grads,
+         caption = "<p style='font-family:montserrat'># of combined<br>program graduates<br>(Internal/Pediatrics)</p>",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+### EM Graduates
+
+```{r}
+renderValueBox({
+
+valueBox(em_grads,
+         caption = "<p style='font-family:montserrat'># of Emergency Medicine Graduates</p>",
+               icon = "fa-user-md",
+               color = "#10C637")
+})
+
+```
+
+Column {data-width=800}
+-------------------------------------
+### Graduates
+
+```{r}
+
+renderLeaflet({
+
+  grads_cali$mytext <- sprintf(
+"<p style='font-size: 18px; font-family: montserrat'>%s</p>",
+ grads_cali$mytext) %>% 
+ lapply(htmltools::HTML)  
+
+
+pal <- colorNumeric(palette = "viridis",  domain = grads_cali$n, na.color = "white")
+
+leaflet(grads_cali) %>% 
+  addPolygons(fillColor = pal(grads_cali$n),
+              color = "#444444",
+              smoothFactor = .5,
+              popup = grads_cali$mytext,
+              label = grads_cali$County,
+               labelOptions = labelOptions(style = list("font-weight" = "normal", 
+                                                        padding = "3px 8px",
+                                                       "font-family" = "Montserrat"),
+                                          textsize = "25px",
+                                          direction = "auto",
+                                          interactive = TRUE),
+              weight = 1,
+              opacity = 1.0,
+              fillOpacity = 1,
+              highlightOptions = highlightOptions(weight = 5,
+                                           color = "#666",
+                                           fillOpacity = 0,7,
+                                           bringToFront = TRUE)) %>% 
+              addLegend(title = "<p style='font-family:montserrat'>Total Number of Grads</p>", pal = pal, values = ~grads_cali$n, opacity = 0.7,
+  position = "topright", na.label = "")
+
+})
+
+```   
+
+
+All Awardees
+=====================================  
+
+Inputs {.sidebar}
+-------------------------------------------
+Total Residents by Program Type
+
+```{r}
+
+p("Use this to filter by Discipline for total resident positions by program type")
+
+selectInput(inputId = "discipline",
+            label = "Select Discipline",
+            choices = unique(residents_pt$Discipline),
+            selected = "All Disciplines")
+
+
+```
+
+
+Column {data-width=500}
+-------------------------------------
+
+### Total Awardees by Discipline
+
+```{r fig.showtext=TRUE}
+renderPlotly({
+
+  
+plot_ly(data = awardees_by_discipline, x = ~Discipline, y = ~Total,
+        marker = list(color = "#10C637"),
+        text = awardees_by_discipline$Total, textposition = "auto") %>% 
+  add_bars() %>% 
+  layout(yaxis = list(title = "Positions Awarded",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         xaxis = list(title = "Discipline",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         font = list(family = "montserrat"))
+
+})
+
+```
+
+### Positions Awarded by Discipline
+
+```{r fig.showtext=TRUE}
+renderPlotly({
+
+  
+plot_ly(data = residents_disicipline, x = ~Discipline, y = ~Total.Residents,
+        marker = list(color = "#10C637"),
+        text = residents_disicipline$Total.Residents, textposition = "auto") %>% 
+  add_bars() %>% 
+  layout(yaxis = list(title = "Positions Awarded",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         xaxis = list(title = "Discipline",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         font = list(family = "montserrat"))
+
+})
+
+```
+
+Column
+------------------------------------
+
+### Amount Awarded by Discipline
+
+```{r fig.showtext=TRUE}
+renderPlotly({
+
+  
+plot_ly(data = amount_discipline, x = ~Discipline, y = ~funds,
+        marker = list(color = "#10C637"),
+        text = amount_discipline$Amount, textposition = "auto") %>% 
+  add_bars() %>% 
+  layout(yaxis = list(title = "Amount Awarded",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         xaxis = list(title = "Discipline",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         font = list(family = "montserrat"))
+
+})
+
+```
+
+### Resident Positions by Program Type
+
+```{r fig.showtext=TRUE}
+
+renderPlotly({
+  
+  pt <- residents_pt %>% 
+    filter(Discipline == input$discipline)
+  
+  
+plot_ly(data = pt, x = ~Program.Type, y = ~Total,
+        marker = list(color = "#10C637"),
+        text = pt$Total, textposition = "auto") %>% 
+  add_bars() %>% 
+  layout(yaxis = list(title = "Positions Awarded",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         xaxis = list(title = "Program Type",
+                      titlefont = list(family = "montserrat"),
+                      tickfont = list(family = "montserrat")),
+         font = list(family = "montserrat"))
+  
+})
+
+```
+
